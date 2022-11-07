@@ -1,0 +1,14 @@
+name	is_startpoint	is_endpoint	x_coord	y_coord	building	map	connectList
+1st Floor Main Entrance	TRUE	FALSE	1	1	KYC	1	"Vascular Interventional Radiology, Orthopaedics, Physical/ Occupational Therapy"
+Vascular Interventional Radiology	FALSE	TRUE	1	1	KYC	1	"1st Floor Main Entrance, Orthopaedics"
+Orthopaedics	FALSE	TRUE	1	1	KYC	1	"1st Floor Main Entrance, X-Ray/ MRI, Vascular Interventional Radiology"
+Physical/ Occupational Therapy 	FALSE	TRUE	1	1	KYC	1	"1st Floor Main Entrance, Anesthesia Preop Services"
+X-Ray/ MRI	FALSE	TRUE	1	1	KYC	1	"Orthopaedics, Kentucky Neuroscience Institute"
+Kentucky Neuroscience Institute	FALSE	TRUE	1	1	KYC	1	"Image Records Center, UHS Entrance"
+Anesthesia Preop Services	FALSE	TRUE	1	1	KYC	1	"Physical/ Occupational Therapy, Pharmacy"
+Pharmacy	FALSE	TRUE	1	1	KYC	1	"South Limestone Entrance B, General Surgery"
+General Surgery	FALSE	TRUE	1	1	KYC	1	South Limestone Entrance A
+South Limestone Entrance A	TRUE	FALSE	1	1	KYC	1	"General Surgery, South Limestone Entrance B"
+South Limestone Entrance B	TRUE	FALSE	1	1	KYC	1	"South Limestone Entrance A, Pharmacy"
+Image Records Center	FALSE	TRUE	1	1	KYC	1	"Rose Street Entrance, UHS Entrance, Kentucky Neuroscience Institute"
+UHS Entrance	TRUE	FALSE	1	1	KYC	1	"Image Records Center, Kentucky Neuroscience Institute"
