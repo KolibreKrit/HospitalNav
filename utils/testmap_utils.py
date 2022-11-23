@@ -1,4 +1,5 @@
-
+#one-off functions where we save results. performance probably doesn't matter
+#trevor roussel
 import json
 import numpy as np
 from PIL import Image
@@ -36,10 +37,6 @@ def write_angles(path, name):
     name2 = name.split('.')[0] + '_angles.json'
     with open(path+name2, 'w') as file:
         file.write(json.dumps(nodes))
-        
-
-#write_angles('data/', 'testmap_nodes.json')
-
 
 def rewrite_images(nodes_path, image_path):
     with open(nodes_path, 'r') as file:
@@ -51,4 +48,13 @@ def rewrite_images(nodes_path, image_path):
         im2.save(image_path+'images_test2/'+node+'.jpg')
     print('Done')
 
-rewrite_images('data/testmap_nodes_angles.json', 'data/')
+#rewrite_images('data/testmap_nodes_angles.json', 'data/')
+
+def draw_connections(nodes_path, image_path):
+    with open(nodes_path, 'r') as file:
+        nodes = json.load(file)
+    print(nodes)
+    # for node in nodes:
+    #     for 
+
+draw_connections('data/testmap_nodes_angles.json', 'data/images/lines')

@@ -109,6 +109,7 @@
     let viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
         container: document.querySelector('#viewer'),
         panorama: "http://localhost:5000/get_image/" + path[0].name,
+		overlay: "http://localhost:5000/get_line_image/" + path[0].line_name,
         caption: path[0].name,
 		defaultLong: path[0].angle,
       });
@@ -121,16 +122,19 @@
             element.style.fontWeight = "normal";
             current += 1;
 			document.getElementById("directions").innerHTML = path[current].string_direction;
-            viewer.setPanorama("http://localhost:5000/get_image/" + path[current].name);
+            viewer.setPanorama("http://localhost:5000/get_image/" + path[current].name)
+			 .then(() => viewer.setOverlay("http://localhost:5000/get_line_image/" + path[current].line_name));
             viewer.setOptions({
 				caption: path[current].name,
 			});
+			viewer.setOverlay("http://localhost:5000/get_line_image/" + path[current].line_name);
 			viewer.animate({
 				longitude: path[current].angle,
 				latitude: 0.0,
 				zoom: 0,
 				speed: '8rpm',
-			});
+			})
+			.then(() => viewer.setOverlay("http://localhost:5000/get_line_image/" + path[current].line_name));
             var element = document.getElementById(path[current].name);
             element.style.fontWeight = "bold";
         }
@@ -142,16 +146,18 @@
             element.style.fontWeight = "normal";
             current -= 1;
 			document.getElementById("directions").innerHTML = path[current].string_direction;
-            viewer.setPanorama("http://localhost:5000/get_image/" + path[current].name);
-            viewer.setOptions({
+            viewer.setPanorama("http://localhost:5000/get_image/" + path[current].name)
+			 .then(() => viewer.setOverlay("http://localhost:5000/get_line_image/" + path[current].line_name));viewer.setOptions({
 				caption: path[current].name,
 			});
+			viewer.setOverlay("http://localhost:5000/get_line_image/" + path[current].line_name);
 			viewer.animate({
 				longitude: path[current].angle,
 				latitude: 0.0,
 				zoom: 0,
 				speed: '8rpm',
-			});
+			})
+			.then(() => viewer.setOverlay("http://localhost:5000/get_line_image/" + path[current].line_name));
             element = document.getElementById(path[current].name);
             element.style.fontWeight = "bold";
       }

@@ -2,6 +2,8 @@ import pyorient
 import json
 import re
 import numpy as np
+import path_tools
+from os.path import exists
 
 
 def reset_db(client, name):
@@ -28,8 +30,12 @@ def getattr(client, rid):
     attr = client.query("SELECT name, x_coord, y_coord, floor FROM " + rid.get_hash())
     return {"name": attr[0].name, "x_coord": attr[0].x_coord, "y_coord": attr[0].y_coord, "floor": attr[0].floor}
 
-def getangle(client, ridout, ridin):
+def getangle_out(client, ridout, ridin):
     angle = client.query("SELECT angle FROM Connection WHERE out = " + ridout.get_hash() + " AND in = " + ridin.get_hash())
+    return angle[0].angle
+
+def getangle_back(client, ridout, ridin):
+    angle = client.query("SELECT angle FROM Connection WHERE out = " + ridin.get_hash() + " AND in = " + ridout.get_hash())
     return angle[0].angle
 
 def getEndpoints(client):
@@ -135,61 +141,77 @@ def shortestPath(locationA, locationB):
     distance = len(pathlist[0].__getattr__('shortestPath'))
     raw_path = pathlist[0].__getattr__('shortestPath')
 
-    for i in range(distance-1):
+    print(raw_path)
+    for i in range(distance):
         path.append(getattr(client, raw_path[i]))
-        path[i]["angle"] = getangle(client, raw_path[i], raw_path[i+1])
-    path.append(getattr(client, raw_path[-1]))
-    path[-1]["angle"] = path[-2]["angle"]
+    for i in range(distance-1):
+        path[i]["angle"] = getangle_out(client, raw_path[i], raw_path[i+1])
+        path[i+1]["angle_back"] = getangle_back(client, raw_path[i], raw_path[i+1])
+    if len(path) >= 2:
+        path[-1]["angle"] = path[-2]["angle"] #last node has no out edge: just use angle of second-to-last node
+        path[0]["angle_back"] = path[1]["angle_back"]
+    else:
+        path[-1]["angle"] = 0.0 # 1 node path edge case
+        path[0]["angle_back"] = 0.0
 
-    # for i in range(distance-1):
-    #     attr = getattr(client, raw_path[i])
-    #     print(attr)
-    #     print(type(attr))
-    #     path.append(attr)
-
-    #pyorient.otypes.OrientRecord
     client.close()
-#    return distance-1, path
 
     path_string = string_directions(path)
+    path_string = next_nodes(path_string, 3)
 
     return path_string
 
-#this can be simplified way, way down now that I have the angles of all these things, but we don't need that for this demo build
+
+#take back angle and out angle to find left/right/straight turns
+#angles are in range -pi, pi
+#trevor roussel
 def string_directions(path):
-    curr_node = (path[0]['x_coord'], path[0]['y_coord'])
     for i in range(len(path)-1):
-        last_node = curr_node
-        curr_node = (path[i]['x_coord'], path[i]['y_coord'])
         next_floor = path[i+1]['floor']
         if(path[i]['floor'] != next_floor):
             path[i]['string_direction'] = f'Take the elevator to floor {next_floor}'
             #next iteration, first vector will be zero vector. will always display direction as straight, avoids unintended behavior with different coords on diff maps
-            curr_node = (path[i+1]['x_coord'], path[i+1]['y_coord']) 
         else:
-            next_node = (path[i+1]['x_coord'], path[i+1]['y_coord'])
-            angle = angle_between((curr_node[0]-last_node[0], curr_node[1]-last_node[1]), (next_node[0]-curr_node[0], next_node[1]-curr_node[1]))
-            if (angle > .7854 and angle < 2.3562):
+            #find angle of out angle from perspective of back angle
+            angle = path[i]["angle"] - path[i]["angle_back"] + np.pi
+            angle = path_tools.reg_angle(angle) #set to range -pi, pi
+            #3pi/4 and pi/4 constants are precomputed because python is iffy about folding constants
+            if (angle > -2.3562 and angle < -0.7854):
                 path[i]['string_direction'] = 'Turn left'
-            elif (angle < 3.927):
+            elif (angle < 0.7854):
                 path[i]['string_direction'] = 'Head straight'
-            elif (angle < 5.4978):
+            elif (angle < 2.3562):
                 path[i]['string_direction'] = 'Turn right'
             else:
-                path[i]['string_direction'] = 'Turn backwards' #don't expect this outcome
+                path[i]['string_direction'] = 'Turn backwards' #probably an error case but maybe there are weird directions
     path[-1]['string_direction'] = 'You\'ve arrived!'
     return path
 
-def angle_between(vec1, vec2):
-    pi = 3.14159265359
-    #in the case of a starting zero vector, assume we always consider the path taken as straight
-    if all(components == 0 for components in vec1):
-        return pi
-    v1_norm = vec1 / np.linalg.norm(vec1)
-    v2_norm = vec2 / np.linalg.norm(vec2)
-    angle = np.arccos(np.clip(np.dot(v1_norm, v2_norm), -1.0, 1.0))
-    #angle in 2D plane: angle measures from a left turn, with 0 being a reverse, pi/2 being 90 deg left, 3pi/2 90 deg right, etc.
-    #arccos has range [0, pi]. Checking sign of cross product lets us adjust to full 2pi radius
-    if (np.cross(v1_norm, v2_norm) > 0):
-        angle = angle + pi
-    return angle
+#for each node in path, get the next 3 nodes and add name of overlay image
+#trevor roussel
+def next_nodes(path, segments=3, line_path='data/images/lines/'):
+    connections = []
+    for i in range(len(path)):
+        connections.append(path_tools.get_next_n(path, i, segments))
+        name = 'line'
+        for j in range(len(connections[i])):
+            name += '_' + connections[i][j]['name']
+        name += '.png'
+        if not exists(line_path+name):
+            path_tools.draw_line(connections[i], line_path)
+        path[i]['line_name'] = name
+    return path
+
+# def angle_between(vec1, vec2):
+#     #in the case of a zero vector, assume we always consider the path taken as straight
+#     if all(components == 0 for components in vec1):
+#         return np.pi
+#     v1_norm = vec1 / np.linalg.norm(vec1)
+#     v2_norm = vec2 / np.linalg.norm(vec2)
+#     angle = np.arccos(np.clip(np.dot(v1_norm, v2_norm), -1.0, 1.0))
+#     #angle in 2D plane: angle measures from a left turn, with 0 being a reverse, pi/2 being 90 deg left, 3pi/2 90 deg right, etc.
+#     #arccos has range [0, pi]. Checking sign of cross product lets us adjust to full 2pi radius
+#     if (np.cross(v1_norm, v2_norm) > 0):
+#         angle = angle + np.pi
+#     return angle
+
