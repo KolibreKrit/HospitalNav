@@ -35,7 +35,7 @@
         <div class="container-fluid">
           <img class="logo-image" src="https://ukhealthcare.uky.edu/themes/custom/ukhc/images/ukhc-logo-small.png"></img>
 
-          <a class="navbar-brand" href="http://ukhealthgps.servehttp.com:36824">GPS</a>
+          <a class="navbar-brand" href="http://localhost:36824">GPS</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -47,7 +47,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
                     {% for startpoint in startpoints %}
-                        <li><a class="dropdown-item" href="http://ukhealthgps.servehttp.com:36824/{{ startpoint }}&{{ end }}">{{ startpoint }}</a></li>
+                        <li><a class="dropdown-item" href="http://localhost:36824/{{ startpoint }}&{{ end }}">{{ startpoint }}</a></li>
                     {% endfor %}
                 </ul>
               </li>
@@ -61,7 +61,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
                     {% for endpoint in endpoints %}
-                        <li><a class="dropdown-item" href="http://ukhealthgps.servehttp.com:36824/{{ start }}&{{ endpoint }}">{{ endpoint }}</a></li>
+                        <li><a class="dropdown-item" href="http://localhost:36824/{{ start }}&{{ endpoint }}">{{ endpoint }}</a></li>
                     {% endfor %}
                 </ul>
               </li>
@@ -116,11 +116,11 @@
     // If we only have start
     if ("{{ start }}" != "NULL" && "{{ end }}" == "NULL") {
       document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
-              "You are currentlyat " + "{{ start }}" + ". Please choose a Destination from the menu." 
+              "You are currently at " + "{{ start }}" + ". Please choose a Destination from the menu." 
               "</mark></ins></strong>";
       var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
         container: document.querySelector('#viewer'),
-         panorama: "http://ukhealthgps.servehttp.com:36824/get_image/" + "{{ start }}",
+         panorama: "http://localhost:36824/get_image/" + "{{ start }}",
           caption: "{{ start }}",
 		  defaultLong: 0.0,
       });
@@ -131,7 +131,7 @@
               "</mark></ins></strong>";
       var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
         container: document.querySelector('#viewer'),
-         panorama: "http://ukhealthgps.servehttp.com:36824/get_image/" + path[0].name,
+         panorama: "http://localhost:36824/get_image/" + path[0].name,
           caption: path[0].name,
 		  defaultLong: path[0].angle,
       });
@@ -148,9 +148,20 @@
 			      document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
               path[current].string_direction + 
               "</mark></ins></strong>";
-            viewer.setPanorama("http://ukhealthgps.servehttp.com:36824/get_image/" + path[current].name);
+            viewer.setPanorama("http://localhost:36824/get_image/" + path[current].name);
             viewer.setOptions({
 				caption: path[current].name,
+			});
+			//different angles of cameras can cause jarring turns in animation, this should fix:
+			start_angle = path[current].angle_back;
+			if (start_angle < 0.0) {
+				start_angle = start_angle + 3.14159;
+			} else {
+				start_angle = start_angle - 3.14159;
+			}
+			viewer.rotate({
+				longitude: start_angle,
+				latitude: 0.0,
 			});
 			viewer.animate({
 				longitude: path[current].angle,
@@ -171,9 +182,20 @@
             document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
               path[current].string_direction + 
               "</mark></ins></strong>";
-            viewer.setPanorama("http://ukhealthgps.servehttp.com:36824/get_image/" + path[current].name);
+            viewer.setPanorama("http://localhost:36824/get_image/" + path[current].name);
+
             viewer.setOptions({
 				caption: path[current].name,
+			});
+			start_angle = path[current].angle_back;
+			if (start_angle < 0.0) {
+				start_angle = start_angle + 3.14159;
+			} else {
+				start_angle = start_angle - 3.14159;
+			}
+			viewer.rotate({
+				longitude: start_angle,
+				latitude: 0.0,
 			});
 			viewer.animate({
 				longitude: path[current].angle,

@@ -2,6 +2,11 @@ import pyorient
 import json
 import re
 import numpy as np
+import path_tools
+import os
+from PIL import Image
+
+ip = "localhost"
 
 
 def reset_db(client, name):
@@ -40,9 +45,9 @@ def getStartpoints(client):
     startpoints = client.query("SELECT name FROM Location WHERE is_startpoint = TRUE")
     return [startpoint.__getattr__('name') for startpoint in startpoints]
 
-def getMetric(client, name):
-    metric = client.query("SELECT metric FROM Location WHERE name = '" + str(name) + "'")
-    return metric[0].__getattr__('metric')
+# def getMetric(client, name):
+#     metric = client.query("SELECT metric FROM Location WHERE name = '" + str(name) + "'")
+#     return metric[0].__getattr__('metric')
 
 def incrementMetric(client, name):
     client.command("UPDATE Location INCREMENT metric = 1 WHERE name = '" + str(name) + "'")
@@ -58,7 +63,7 @@ def simpleShortestPath(locationA, locationB):
     password = "rootpwd"
     path = list()
 
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     client.db_open(dbname, login, password)
@@ -91,7 +96,7 @@ def simpleLoadDB(filepath):
     password = "rootpwd"
 
     #create client to connect to local orientdb docker container
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     #remove old database and create new one
@@ -144,7 +149,7 @@ def loadDB(filepath):
     password = "rootpwd"
 
     #create client to connect to local orientdb docker container
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     #remove old database and create new one
@@ -172,15 +177,6 @@ def loadDB(filepath):
         data = json.load(f)
 
     #loop through each key in the json database and create a new vertex, V with the id in the database
-    # for key in data:
-    #     client.command("CREATE VERTEX Location SET name = '" + key
-    #     + "', is_startpoint = '" + str(data.get(key).get("is_startpoint"))
-    #     + "', is_endpoint = " + str(data.get(key).get("is_endpoint"))
-    #     + ", x_coord = " + str(data.get(key).get("x_coord"))
-    #     + ", y_coord = " + str(data.get(key).get("y_coord"))
-    #     + ", building = " + data.get(key).get("building")
-    #     + ", map = " + data.get(key).get("map"))
-    
     for key in data:
         client.command("CREATE VERTEX Location SET name = '" + key
         + "', is_startpoint = '" + str(data[key]["is_startpoint"])
@@ -209,7 +205,7 @@ def shortestPath(locationA, locationB):
     password = "rootpwd"
     path = list()
 
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     client.db_open(dbname, login, password)
@@ -226,61 +222,78 @@ def shortestPath(locationA, locationB):
     distance = len(pathlist[0].__getattr__('shortestPath'))
     raw_path = pathlist[0].__getattr__('shortestPath')
 
-    for i in range(distance-1):
+    for i in range(distance):
         path.append(getattr(client, raw_path[i]))
+    for i in range(distance-1):
         path[i]["angle"] = getangle(client, raw_path[i], raw_path[i+1])
-    path.append(getattr(client, raw_path[-1]))
-    path[-1]["angle"] = path[-2]["angle"]
-
-    # for i in range(distance-1):
-    #     attr = getattr(client, raw_path[i])
-    #     print(attr)
-    #     print(type(attr))
-    #     path.append(attr)
+        path[i+1]["angle_back"] = getangle(client, raw_path[i+1], raw_path[i]) #angle back to path[i]
+    
+    if len(path) >= 2:
+        path[-1]["angle"] = path[-2]["angle"] #last node has no out edge: just use angle of second-to-last node
+        path[0]["angle_back"] = path[1]["angle_back"]
+    else:
+        path[-1]["angle"] = 0.0 # 1 node path edge case
+        path[0]["angle_back"] = 0.0
 
     #pyorient.otypes.OrientRecord
     client.close()
-#    return distance-1, path
 
     path_string = string_directions(path)
+    path_string = next_nodes(path_string, 3, 'data/images/lines/', 0.6333, 5)
 
     return path_string
 
-#this can be simplified way, way down now that I have the angles of all these things, but we don't need that for this demo build
+#take back angle and out angle to find left/right/straight turns
+#angles are in range -pi, pi
+#trevor roussel
 def string_directions(path):
-    curr_node = (path[0]['x_coord'], path[0]['y_coord'])
     for i in range(len(path)-1):
-        last_node = curr_node
-        curr_node = (path[i]['x_coord'], path[i]['y_coord'])
         next_floor = path[i+1]['floor']
         if(path[i]['floor'] != next_floor):
             path[i]['string_direction'] = f'Take the elevator to floor {next_floor}'
             #next iteration, first vector will be zero vector. will always display direction as straight, avoids unintended behavior with different coords on diff maps
-            curr_node = (path[i+1]['x_coord'], path[i+1]['y_coord']) 
         else:
-            next_node = (path[i+1]['x_coord'], path[i+1]['y_coord'])
-            angle = angle_between((curr_node[0]-last_node[0], curr_node[1]-last_node[1]), (next_node[0]-curr_node[0], next_node[1]-curr_node[1]))
-            if (angle > .7854 and angle < 2.3562):
+            #find angle of out angle from perspective of back angle
+            angle = path[i]["angle"] - path[i]["angle_back"] + np.pi
+            angle = path_tools.reg_angle(angle) #set to range -pi, pi
+            #3pi/4 and pi/4 constants are precomputed because python is iffy about folding constants
+            if (angle > -2.3562 and angle < -0.7854):
                 path[i]['string_direction'] = 'Turn left'
-            elif (angle < 3.927):
+            elif (angle < 0.7854):
                 path[i]['string_direction'] = 'Head straight'
-            elif (angle < 5.4978):
+            elif (angle < 2.3562):
                 path[i]['string_direction'] = 'Turn right'
             else:
-                path[i]['string_direction'] = 'Turn backwards' #don't expect this outcome
+                path[i]['string_direction'] = 'Turn backwards' #probably an error case but maybe there are weird directions
     path[-1]['string_direction'] = 'You\'ve arrived!'
     return path
 
-def angle_between(vec1, vec2):
-    pi = 3.14159265359
-    #in the case of a starting zero vector, assume we always consider the path taken as straight
-    if all(components == 0 for components in vec1):
-        return pi
-    v1_norm = vec1 / np.linalg.norm(vec1)
-    v2_norm = vec2 / np.linalg.norm(vec2)
-    angle = np.arccos(np.clip(np.dot(v1_norm, v2_norm), -1.0, 1.0))
-    #angle in 2D plane: angle measures from a left turn, with 0 being a reverse, pi/2 being 90 deg left, 3pi/2 90 deg right, etc.
-    #arccos has range [0, pi]. Checking sign of cross product lets us adjust to full 2pi radius
-    if (np.cross(v1_norm, v2_norm) > 0):
-        angle = angle + pi
-    return angle
+def next_nodes(path, segments=3, line_path='data/images/lines/', unit_to_ft=1, cam_height=5):
+    connections = []
+    for i in range(len(path)):
+        connections.append(path_tools.get_next_n(path, i, segments))
+        name = 'line'
+        for j in range(len(connections[i])):
+            name += '_' + connections[i][j]['name']
+        name += '.png'
+        if not os.path.exists(line_path+name):        
+            with Image.open('data/images/' + path[i]['name'] + '.jpg') as img:
+                w = img.width
+                h = img.height
+            path_tools.draw_line(connections[i], line_path, w, h, cam_height/unit_to_ft)
+        path[i]['line_name'] = name
+    return path
+
+# def angle_between(vec1, vec2):
+#     pi = 3.14159265359
+#     #in the case of a starting zero vector, assume we always consider the path taken as straight
+#     if all(components == 0 for components in vec1):
+#         return pi
+#     v1_norm = vec1 / np.linalg.norm(vec1)
+#     v2_norm = vec2 / np.linalg.norm(vec2)
+#     angle = np.arccos(np.clip(np.dot(v1_norm, v2_norm), -1.0, 1.0))
+#     #angle in 2D plane: angle measures from a left turn, with 0 being a reverse, pi/2 being 90 deg left, 3pi/2 90 deg right, etc.
+#     #arccos has range [0, pi]. Checking sign of cross product lets us adjust to full 2pi radius
+#     if (np.cross(v1_norm, v2_norm) > 0):
+#         angle = angle + pi
+#     return angle

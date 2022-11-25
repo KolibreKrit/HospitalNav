@@ -109,8 +109,6 @@ def display_map(path, name, node_r:int = 10, scale=6):
         map_draw.ellipse(box, (0, 0, 255))
         map_draw.text((scale*x-(node_r*2), scale*y-(node_r*2)), node, fill=(0,0,0))
     blank_map.show()
-
-
     
 #display_map('data/', 'KYCTestValues', 8, 3)
 

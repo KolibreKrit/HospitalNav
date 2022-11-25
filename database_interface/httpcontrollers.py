@@ -9,12 +9,14 @@ from DBTools import loadDB
 from DBTools import shortestPath
 
 from DBTools import incrementMetric
-from DBTools import getMetric
+#from DBTools import getMetric
 from DBTools import getEndpoints
 from DBTools import getStartpoints
 import os
 import pyorient
 from flask import Flask, request, jsonify, render_template, send_file
+
+from DBTools import ip
 
 print(os.getcwd())
 app = Flask(__name__, static_folder = './templates')
@@ -37,7 +39,7 @@ def home():
     login = "root"
     password = "rootpwd"
 
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     client.db_open(dbname, login, password)
@@ -64,7 +66,7 @@ def directions(start, end):
     login = "root"
     password = "rootpwd"
 
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     client.db_open(dbname, login, password)
@@ -102,7 +104,7 @@ def get_endpoints():
     login = "root"
     password = "rootpwd"
 
-    client = pyorient.OrientDB("172.17.0.2", 2424)
+    client = pyorient.OrientDB(ip, 2424)
     session_id = client.connect(login, password)
 
     client.db_open(dbname, login, password)
@@ -124,16 +126,16 @@ def reset():
 def shortest_path(start, end):
     return jsonify(shortestPath(start, end))
 
-@app.route('/get_metric/<string:name>', methods = ['GET'])
-def get_metric(name):
-    dbname = "locations"
-    login = "root"
-    password = "rootpwd"
+# @app.route('/get_metric/<string:name>', methods = ['GET'])
+# def get_metric(name):
+#     dbname = "locations"
+#     login = "root"
+#     password = "rootpwd"
 
-    client = pyorient.OrientDB("172.17.0.2", 2424)
-    session_id = client.connect(login, password)
+#     client = pyorient.OrientDB("172.17.0.2", 2424)
+#     session_id = client.connect(login, password)
 
-    client.db_open(dbname, login, password)
-    return jsonify(getMetric(client, name))
+#     client.db_open(dbname, login, password)
+#     return jsonify(getMetric(client, name))
 
-app.run(host='0.0.0.0', port=36824, debug=True)
+app.run(host=ip, port=36824, debug=True)
