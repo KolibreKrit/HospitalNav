@@ -132,6 +132,7 @@
       var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
         container: document.querySelector('#viewer'),
          panorama: "http://localhost:36824/get_image/" + path[0].name,
+		 overlay: "http://localhost:36824/get_line_image/" + path[0].line_name,
           caption: path[0].name,
 		  defaultLong: path[0].angle,
       });
@@ -148,10 +149,12 @@
 			      document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
               path[current].string_direction + 
               "</mark></ins></strong>";
-            viewer.setPanorama("http://localhost:36824/get_image/" + path[current].name);
+            viewer.setPanorama("http://localhost:36824/get_image/" + path[current].name)
+			 .then(() => viewer.setOverlay("http://localhost:36824/get_line_image/" + path[current].line_name));
             viewer.setOptions({
 				caption: path[current].name,
 			});
+			viewer.setOverlay("http://localhost:36824/get_line_image/" + path[current].line_name);
 			//different angles of cameras can cause jarring turns in animation, this should fix:
 			start_angle = path[current].angle_back;
 			if (start_angle < 0.0) {
@@ -168,7 +171,8 @@
 				latitude: 0.0,
 				zoom: 0,
 				speed: '8rpm',
-			});
+			})
+			.then(() => viewer.setOverlay("http://localhost:36824/get_line_image/" + path[current].line_name));
             var element = document.getElementById(path[current].name);
             element.style.fontWeight = "bold";
         }
@@ -182,11 +186,13 @@
             document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
               path[current].string_direction + 
               "</mark></ins></strong>";
-            viewer.setPanorama("http://localhost:36824/get_image/" + path[current].name);
+            viewer.setPanorama("http://localhost:36824/get_image/" + path[current].name)
+			.then(() => viewer.setOverlay("http://localhost:36824/get_line_image/" + path[current].line_name));
 
             viewer.setOptions({
 				caption: path[current].name,
 			});
+			viewer.setOverlay("http://localhost:36824/get_line_image/" + path[current].line_name);
 			start_angle = path[current].angle_back;
 			if (start_angle < 0.0) {
 				start_angle = start_angle + 3.14159;
@@ -202,7 +208,8 @@
 				latitude: 0.0,
 				zoom: 0,
 				speed: '8rpm',
-			});
+			})
+			.then(() => viewer.setOverlay("http://localhost:36824/get_line_image/" + path[current].line_name));
             element = document.getElementById(path[current].name);
             element.style.fontWeight = "bold";
       }

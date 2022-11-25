@@ -117,6 +117,10 @@ def get_image(name):
     else:
         return send_file('../data/images/' + name + '.JPG', mimetype='image/gif')
 
+@app.route('/get_line_image/<string:name>', methods=['GET'])
+def get_line_image(name):
+    return send_file('../data/images/lines/' + name, mimetype='image/gif')
+
 @app.route('/reset', methods=['GET'])
 def reset():
     loadDB(filepath)
