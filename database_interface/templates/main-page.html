@@ -122,18 +122,18 @@
         document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
                 "You are currently at " + "{{ start }}" + ". Please choose a Destination from the menu." 
                 "</mark></ins></strong>";
-        var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
+        const viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
           container: document.querySelector('#viewer'),
           panorama: "http://ukhealthgps.servehttp.com:36824/get_image/" + "{{ start }}",
             caption: "{{ start }}",
         defaultLong: 0.0,
         });
       }
-      else {
+      else { // If we have a start and finish location 
         document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
                 path[0].string_direction + 
                 "</mark></ins></strong>";
-        var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
+        const viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
           container: document.querySelector('#viewer'),
           panorama: "http://ukhealthgps.servehttp.com:36824/get_image/" + path[0].name,
       overlay: "http://ukhealthgps.servehttp.com:36824/get_line_image/" + path[0].line_name,
@@ -219,27 +219,41 @@
       }
     }
 </script>
-<!-- Still not fuctional currently -->
+
+<script>
+  /* 
+   * Function Hides the Photosphere viewer and shows the 2-D Images 
+  */ 
+  function hide_viewer() { 
+    document.getElementById("viewer").style.display = "none" ; 
+    //document.getElementById("img1").style.display = "block"; // 2D images currenly aren't funnctional 
+    //document.getElementById("img2").style.display = "block";
+  }
+  /*
+   * Function Shows the Photosphere viewer and hides the 2-D images 
+  */ 
+  function show_viewer() {
+    document.getElementById("viewer").style.display = "block"; // show the viewer
+   // document.getElementById("img1").style.display = "none"; // 2D images currently aren't functional 
+   // document.getElementById("img2").style.display = "none";
+  }
+</script>
+
 
 <script>
   /*
    * Function toggles the dimension of the view between 2-d and 3-d for the user upon click of button
-   * Bug: Once the viewer is removed it cannot be recovered // looking into documentation abouth either photosphere viewer
-   * // or a way to hide element instead of remove
+   * Assume that a viewer has already been initialized at this point 
   */
   function toggleViewer() {
     var t = document.getElementById("dim_button");
     if (t.innerHTML == "3D-View"){ // if the view is 2-D
       t.innerHTML = "2D-View"; // Set the button to new 2-D value
-      document.getElementById("viewer").style.display = "block"; // show the viewer
-      document.getElementById("img1").style.display = "none";
-      document.getElementById("img2").style.display = "none";
+      show_viewer() ; 
     }
     else { // view in 3-d
       t.innerHTML = "3D-View"; // switch the button and remove the viewer
-      document.getElementById("viewer").style.display = "none"; // hide the viewer
-      document.getElementById("img1").style.display = "block";
-      document.getElementById("img2").style.display = "block";
+      hide_viewer() ; 
     }
 }
 </script>
