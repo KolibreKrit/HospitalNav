@@ -122,7 +122,7 @@
         document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
                 "You are currently at " + "{{ start }}" + ". Please choose a Destination from the menu." 
                 "</mark></ins></strong>";
-        const viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
+        var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
           container: document.querySelector('#viewer'),
           panorama: "http://ukhealthgps.servehttp.com:36824/get_image/" + "{{ start }}",
             caption: "{{ start }}",
@@ -133,7 +133,7 @@
         document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
                 path[0].string_direction + 
                 "</mark></ins></strong>";
-        const viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
+        var viewer = new PhotoSphereViewer.Viewer({ // initialize new photosphereviewer
           container: document.querySelector('#viewer'),
           panorama: "http://ukhealthgps.servehttp.com:36824/get_image/" + path[0].name,
       overlay: "http://ukhealthgps.servehttp.com:36824/get_line_image/" + path[0].line_name,
