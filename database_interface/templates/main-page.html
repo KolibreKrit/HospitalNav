@@ -104,6 +104,24 @@
 <!-- Define the size of the viewer -->
 <div id="viewer" style="width:100vw; height: 50vh;"></div>
 
+<script>
+  /* 
+   * Function Hides the Photosphere viewer and shows the 2-D Images 
+  */ 
+  function hide_viewer() { 
+    document.getElementById("viewer").style.display = "none" ; 
+    //document.getElementById("img1").style.display = "block"; // 2D images currenly aren't funnctional 
+    //document.getElementById("img2").style.display = "block";
+  }
+  /*
+   * Function Shows the Photosphere viewer and hides the 2-D images 
+  */ 
+  function show_viewer() {
+    document.getElementById("viewer").style.display = "block"; // show the viewer
+   // document.getElementById("img1").style.display = "none"; // 2D images currently aren't functional 
+   // document.getElementById("img2").style.display = "none";
+  }
+</script>
 
 <!-- Initialize a Photo viewer -->
 <script>
@@ -234,24 +252,7 @@
     }
 </script>
 
-<script>
-  /* 
-   * Function Hides the Photosphere viewer and shows the 2-D Images 
-  */ 
-  function hide_viewer() { 
-    document.getElementById("viewer").style.display = "none" ; 
-    //document.getElementById("img1").style.display = "block"; // 2D images currenly aren't funnctional 
-    //document.getElementById("img2").style.display = "block";
-  }
-  /*
-   * Function Shows the Photosphere viewer and hides the 2-D images 
-  */ 
-  function show_viewer() {
-    document.getElementById("viewer").style.display = "block"; // show the viewer
-   // document.getElementById("img1").style.display = "none"; // 2D images currently aren't functional 
-   // document.getElementById("img2").style.display = "none";
-  }
-</script>
+
 
 
 <script>
