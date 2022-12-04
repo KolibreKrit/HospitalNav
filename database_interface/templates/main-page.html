@@ -144,16 +144,19 @@
       document.getElementById("viewer").style.display = "block"; // show the display
       document.getElementById("{{ start }}").style.fontWeight = "bold";
     }
-    
+      /*
+       * Function sets the image in the photosphere viewer to the next image in the pathway if there exists a 
+       * next image in the path 
+      */ 
       function nextImage() {
-        if (current+1 < path.length){
+        if (current+1 < path.length){ // check that next image exists 
             var element = document.getElementById(path[current].name);
             element.style.fontWeight = "normal";
-            current += 1;
+            current += 1; // update current image and get the new path 
 			      document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
               path[current].string_direction + 
               "</mark></ins></strong>";
-            viewer.setPanorama("http://ukhealthgps.servehttp.com:36824/get_image/" + path[current].name)
+            viewer.setPanorama("http://ukhealthgps.servehttp.com:36824/get_image/" + path[current].name) // set the new panorama and line overlay 
 			 .then(() => viewer.setOverlay("http://ukhealthgps.servehttp.com:36824/get_line_image/" + path[current].line_name));
             viewer.setOptions({
 				caption: path[current].name,
@@ -181,16 +184,20 @@
             element.style.fontWeight = "bold";
         }
       }
-    
+
+    /*
+       * Function sets the image in the photosphere viewer to the previous image in the pathway if there exists a 
+       * previous image in the path 
+      */ 
     function prevImage() {
-      if (current-1 >= 0){
+      if (current-1 >= 0){ // if a previous image exists 
             var element = document.getElementById(path[current].name);
             element.style.fontWeight = "normal";
-            current -= 1;
+            current -= 1; // update current and get the new path 
             document.getElementById("directions").innerHTML = "<strong><ins><mark>" + 
               path[current].string_direction + 
               "</mark></ins></strong>";
-            viewer.setPanorama("http://ukhealthgps.servehttp.com:36824/get_image/" + path[current].name)
+            viewer.setPanorama("http://ukhealthgps.servehttp.com:36824/get_image/" + path[current].name) // set the new panorama and line 
 			.then(() => viewer.setOverlay("http://ukhealthgps.servehttp.com:36824/get_line_image/" + path[current].line_name));
 
             viewer.setOptions({
