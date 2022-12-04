@@ -141,7 +141,14 @@
         defaultLong: path[0].angle,
         });
       }
-      document.getElementById("viewer").style.display = "block"; // show the display
+      // document.getElementById("viewer").style.display = "block"; // show the display
+      var t = document.getElementById("dim_button");
+      if (t.innerHTML == "3D-View"){ // if the view is 2-D
+      show_viewer() ; 
+    }
+    else { // view in 3-d
+      hide_viewer() ; 
+    }
       document.getElementById("{{ start }}").style.fontWeight = "bold";
     }
       /*
