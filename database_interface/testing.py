@@ -38,6 +38,8 @@ string_path = DBTools.string_directions(string_path)
 string_path2 = DBTools.string_directions(string_path2)
 string_path3 = DBTools.string_directions(string_path3)
 
+#String directions tests
+#Important: seen by all users, but a confusing result doesn't break the functionality of the app
 for i in range(len(string_path)):
     #All should be equal: only angle change is at beginning, but first node is always assumed to be "head straight"
     assert(string_path[i]["string_direction"] == string_path2[i]["string_direction"])
@@ -63,6 +65,8 @@ line_path = path_offset.copy()
 #Illustrates several times the handling of lines drawn around or across the image "seam"
 #Also demonstrates the limitation where an occluded line will draw over a wall
 #Sorry that this isn't super accessible for easy testing, this is essentially the process I used when doing my own tests during development
+#Our expected result draws a line between the next 3 nodes unless that path intersects a floor change or there aren't 3 nodes remaining in the path
+#Important: every user will see these lines, and they should be accurate. However, small inconsistencies don't break the functionality.
 line_path = DBTools.next_nodes(line_path, segments=3, line_path="data/images/lines/", unit_to_ft=1, cam_height=6)
 for node in line_path:
     background = Image.open("data/images/" + node["name"] + ".JPG")
